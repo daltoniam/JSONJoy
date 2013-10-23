@@ -96,8 +96,19 @@ AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager]
     NSLog(@"Error: %@", error);
 }];
 ```
+# Usage #
 
+JSONJoy works by mapping property names to JSON value names. It also supports standard rails snake case JSON names being convert to standard camel case objective-c property names. For example: 
 
+```objective-c
+@property(nonatomic,copy)NSString *firstName;
+```
+supports JSON values in the format of:
+
+```javascript
+"first_name": "John"
+"firstName": "John"
+```
 
 # Install #
 
