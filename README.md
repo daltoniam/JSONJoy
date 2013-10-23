@@ -58,12 +58,15 @@ Take a bunch of error prone boilerplate code like this:
         john.firstName = response[@"first_name"];
         john.lastName = response[@"last_name"];
         john.age = response[@"age"];
+		//now for the address
+		john.address = [[Address alloc] init];
         NSDictionary* address = response[@"address"];
         john.address.objectID = address[@"id"];
         john.address.streetAddress = address[@"street_address"];
         john.address.city = address[@"city"];
         john.address.state = address[@"state"];
-        john.address.postalCode = address[@"postal_code"];	
+        john.address.postalCode = address[@"postal_code"];
+		//finally!, now do work with object
 	} failure:^(AFHTTPRequestOperation *operation, NSError *error) {
 	    NSLog(@"Error: %@", error);
 	}];
@@ -75,6 +78,7 @@ AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager]
 {
 	JSONJoy *joy = [JSONJoy JSONJoyWithClass:[User class]];
     User *john = [joy process:responseObject];
+	//do work with object
 } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
     NSLog(@"Error: %@", error);
 }];
@@ -87,10 +91,13 @@ AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager]
 [manager GET:@"http://example.com/resources.json" parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) 
 {
 	User *john = [User objectWithJoy:responseObject];
+	//do work with object
 } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
     NSLog(@"Error: %@", error);
 }];
 ```
+
+
 
 # Install #
 
@@ -108,7 +115,7 @@ Change to the directory of your Xcode project, and Create and Edit your Podfile 
 	$ touch Podfile
 	$ edit Podfile
 	platform :ios, '5.0' 
-	# Or platform :osx, '10.7'
+	# Or platform :osx, '10.8'
 	pod 'JSONJoy'
 
 Install into your project:
@@ -122,7 +129,7 @@ just add JSONJoy as a git submodule
 
 # Requirements #
 
-JSONJoy requires at least iOS 5/Mac OSX 10.7 or above.
+JSONJoy requires at least iOS 5/Mac OSX 10.8 or above.
 
 # License #
 
