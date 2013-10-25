@@ -29,7 +29,7 @@ And Here is our NSObjects we want to convert it to:
 
 @interface User : NSObject
 
-@property(nonatomic,strong)NSNumber *objectID;
+@property(nonatomic,strong)NSNumber *objID;
 @property(nonatomic,copy)NSString *firstName;
 @property(nonatomic,copy)NSString *lastName;
 @property(nonatomic,strong)NSNumber *age;
@@ -39,7 +39,7 @@ And Here is our NSObjects we want to convert it to:
 
 @interface Address : NSObject
 
-@property(nonatomic,strong)NSNumber *objectID;
+@property(nonatomic,strong)NSNumber *objID;
 @property(nonatomic,copy)NSString *streetAddress;
 @property(nonatomic,copy)NSString *city;
 @property(nonatomic,copy)NSString *state;
@@ -54,14 +54,14 @@ Take a bunch of error prone boilerplate code like this:
 	{
 		NSDictionary* response = responseObject;
         User *john = [[User alloc] init];
-        john.objectID = response[@"id"];
+        john.objID = response[@"id"];
         john.firstName = response[@"first_name"];
         john.lastName = response[@"last_name"];
         john.age = response[@"age"];
 		//now for the address
 		john.address = [[Address alloc] init];
         NSDictionary* address = response[@"address"];
-        john.address.objectID = address[@"id"];
+        john.address.objID = address[@"id"];
         john.address.streetAddress = address[@"street_address"];
         john.address.city = address[@"city"];
         john.address.state = address[@"state"];

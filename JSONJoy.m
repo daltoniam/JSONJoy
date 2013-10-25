@@ -41,6 +41,15 @@
         return nil;
     if([object isKindOfClass:[NSString class]])
     {
+        NSData *data = [object dataUsingEncoding:NSUTF8StringEncoding];
+        NSError* error = nil;
+        id json = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
+        if(error)
+            return nil;
+        return [self process:json];
+    }
+    else if([object isKindOfClass:[NSData class]])
+    {
         NSError* error = nil;
         id json = [NSJSONSerialization JSONObjectWithData:object options:0 error:&error];
         if(error)
@@ -58,10 +67,15 @@
     {
         NSDictionary* dict = object;
         NSArray* propArray = [self getPropertiesOfClass:self.objClass];
-        id newObject = [[self.objClass alloc] init];
+        id newObject = nil;
+        if([self.objClass resolveClassMethod:@selector(newObject)]) //for coreData support with DCModel
+            newObject = [[self.objClass class] performSelector:@selector(newObject)];
+        else
+            newObject = [[self.objClass alloc] init];
+        
         for(NSString* propName in propArray)
         {
-            if([propName isEqualToString:@"objectID"]) //special edge case for objective-c using the id keyword
+            if([propName isEqualToString:@"objID"]) //special edge case for objective-c using the id keyword
             {
                 if([self assignValue:@"id" propName:propName dict:dict obj:newObject])
                     continue;
@@ -83,6 +97,15 @@
     id value = dict[key];
     if(value)
     {
+        if([[obj valueForKey:propName] isKindOfClass:[NSDate class]] && [value isKindOfClass:[NSString class]])
+        {
+            NSDate* date = [self formatDate:value];
+            if(date)
+            {
+                [obj setValue:date forKey:propName];
+                return YES;
+            }
+        }
         if([value isKindOfClass:[NSDictionary class]] && ![[obj valueForKey:propName] isKindOfClass:[NSDictionary class]])
         {
             id joy = [value objectWithJoy:obj];
@@ -150,6 +173,17 @@
         return [self convertToJsonName:propName start:range.location+1];
     }
     return propName;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+-(NSDate*)formatDate:(NSString*)dateString
+{
+    static NSDateFormatter *dateFormatter = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        dateFormatter = [[NSDateFormatter alloc] init];
+        [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
+    });
+    return [dateFormatter dateFromString:dateString];
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 +(instancetype)JSONJoyWithClass:(Class)class

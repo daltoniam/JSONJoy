@@ -30,7 +30,7 @@
 /**
  Runs the conversion process and returns a new object of the class provided.
  */
--(id)process:(id)object;
+-(id)process:(id)JSONObject;
 
 ///-------------------------------
 /// @name Factory Method
