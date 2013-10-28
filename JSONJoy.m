@@ -98,7 +98,7 @@
     id value = dict[key];
     if(value)
     {
-        if([self.propertyClasses[propName] isKindOfClass:[NSDate class]])
+        if([[NSDate class] isSubclassOfClass:self.propertyClasses[propName]])
         {
             NSDate* date = [self formatDate:value];
             if(date)
@@ -132,10 +132,12 @@
             }
         }
         //this is a type check to ensure that the value is same type as expected.
-        if([NSNull null] != (NSNull*)value && [value isKindOfClass:self.propertyClasses[propName]])
+        if(![value isKindOfClass:self.propertyClasses[propName]] && [NSNull null] != (NSNull*)value)
             return NO;
-        
-        [obj setValue:value forKey:propName];
+        if([NSNull null] == (NSNull*)value)
+            [obj setValue:nil forKey:propName];
+        else
+            [obj setValue:value forKey:propName];
         return YES;
     }
     return NO;
@@ -200,7 +202,7 @@
     dispatch_once(&onceToken, ^{
         dateFormatter = [[NSDateFormatter alloc] init];
         //[dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
-        [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.000Z"];
+        [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.SSSZ"];
     });
     return [dateFormatter dateFromString:dateString];
 }
