@@ -13,6 +13,7 @@
 
 @property(nonatomic,assign)Class objClass;
 @property(nonatomic,strong)NSMutableDictionary* arrayMap;
+@property(nonatomic,strong)NSMutableDictionary* propertyClasses;
 
 @end
 
@@ -68,7 +69,7 @@
         NSDictionary* dict = object;
         NSArray* propArray = [self getPropertiesOfClass:self.objClass];
         id newObject = nil;
-        if([self.objClass resolveClassMethod:@selector(newObject)]) //for coreData support with DCModel
+        if([[self.objClass class] respondsToSelector:@selector(newObject)])  //[self.objClass resolveClassMethod:@selector(newObject)] //for coreData support with DCModel
             newObject = [[self.objClass class] performSelector:@selector(newObject)];
         else
             newObject = [[self.objClass alloc] init];
@@ -84,7 +85,7 @@
             {
                 continue;
             }
-            NSString* objCName = [self convertToJsonName:propName];
+            NSString* objCName = [JSONJoy convertToJsonName:propName];
             [self assignValue:objCName propName:propName dict:dict obj:newObject];
         }
         return newObject;
@@ -97,14 +98,12 @@
     id value = dict[key];
     if(value)
     {
-        if([[obj valueForKey:propName] isKindOfClass:[NSDate class]] && [value isKindOfClass:[NSString class]])
+        if([self.propertyClasses[propName] isKindOfClass:[NSDate class]])
         {
             NSDate* date = [self formatDate:value];
             if(date)
-            {
                 [obj setValue:date forKey:propName];
-                return YES;
-            }
+            return YES;
         }
         if([value isKindOfClass:[NSDictionary class]] && ![[obj valueForKey:propName] isKindOfClass:[NSDictionary class]])
         {
@@ -132,6 +131,10 @@
                 return YES;
             }
         }
+        //this is a type check to ensure that the value is same type as expected.
+        if([NSNull null] != (NSNull*)value && [value isKindOfClass:self.propertyClasses[propName]])
+            return NO;
+        
         [obj setValue:value forKey:propName];
         return YES;
     }
@@ -148,6 +151,20 @@
     {
         objc_property_t property = properties[i];
         NSString* propName = [NSString stringWithUTF8String:property_getName(property)];
+        const char * type = property_getAttributes(property);
+        
+        NSString * typeString = [NSString stringWithUTF8String:type];
+        NSArray * attributes = [typeString componentsSeparatedByString:@","];
+        NSString * typeAttribute = [attributes objectAtIndex:0];
+        
+        if ([typeAttribute hasPrefix:@"T@"] && [typeAttribute length] > 1)
+        {
+            NSString * typeClassName = [typeAttribute substringWithRange:NSMakeRange(3, [typeAttribute length]-4)];  //turns @"NSDate" into NSDate
+            Class typeClass = NSClassFromString(typeClassName);
+            if(!self.propertyClasses)
+                self.propertyClasses = [[NSMutableDictionary alloc] init];
+            [self.propertyClasses setObject:typeClass forKey:propName];
+        }
         [gather addObject:propName];
     }
     free(properties);
@@ -157,19 +174,20 @@
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //converts some like avatarThumbUrl to avatar_thumb_url.
--(NSString*)convertToJsonName:(NSString*)propName
++(NSString*)convertToJsonName:(NSString*)propName
 {
     return [self convertToJsonName:propName start:0];
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
--(NSString*)convertToJsonName:(NSString*)propName start:(int)start
++(NSString*)convertToJsonName:(NSString*)propName start:(int)start
 {
     NSRange range = [propName rangeOfString:@"[a-z.-][^a-z .-]" options:NSRegularExpressionSearch range:NSMakeRange(start, propName.length-start)];
     if(range.location != NSNotFound && range.location < propName.length)
     {
         unichar c = [propName characterAtIndex:range.location+1];
         propName = [propName stringByReplacingOccurrencesOfString:[NSString stringWithFormat:@"%c",c]
-                                                       withString:[[NSString stringWithFormat:@"_%c",c] lowercaseString]                                                          options:0 range:NSMakeRange(start, propName.length-start)];
+                                                       withString:[[NSString stringWithFormat:@"_%c",c] lowercaseString]
+                                                          options:0 range:NSMakeRange(start, propName.length-start)];
         return [self convertToJsonName:propName start:range.location+1];
     }
     return propName;
@@ -181,7 +199,8 @@
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         dateFormatter = [[NSDateFormatter alloc] init];
-        [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
+        //[dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ssZ"];
+        [dateFormatter setDateFormat:@"yyyy-MM-dd'T'HH:mm:ss.000Z"];
     });
     return [dateFormatter dateFromString:dateString];
 }

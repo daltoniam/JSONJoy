@@ -33,12 +33,22 @@
 -(id)process:(id)JSONObject;
 
 ///-------------------------------
-/// @name Factory Method
+/// @name Factory Methods
 ///-------------------------------
 /**
  Factory method to create a JSONJoy object with a class.
  */
 +(instancetype)JSONJoyWithClass:(Class)classType;
+
+///-------------------------------
+/// @name Class Methods
+///-------------------------------
+/**
+ @return returns a string formatted to snake case/JSON name.
+ @param propName is the property name you want converted. (e.g. avatarThumbUrl to avatar_thumb_url).
+ */
+
++(NSString*)convertToJsonName:(NSString*)propName;
 
 @end
 
