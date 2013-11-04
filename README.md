@@ -76,8 +76,9 @@ and Joyify it into this:
 AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
 [manager GET:@"http://example.com/resources.json" parameters:nil success:^(AFHTTPRequestOperation *operation, id responseObject) 
 {
+	NSError *error = nil;
 	JSONJoy *joy = [JSONJoy JSONJoyWithClass:[User class]];
-    User *john = [joy process:responseObject];
+    User *john = [joy process:responseObject error:&error];
 	//do work with object
 } failure:^(AFHTTPRequestOperation *operation, NSError *error) {
     NSLog(@"Error: %@", error);
