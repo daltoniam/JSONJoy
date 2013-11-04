@@ -69,8 +69,8 @@
         NSDictionary* dict = object;
         NSArray* propArray = [self getPropertiesOfClass:self.objClass];
         id newObject = nil;
-        if([[self.objClass class] respondsToSelector:@selector(newObject)])//for coreData support with DCModel
-            newObject = [[self.objClass class] performSelector:@selector(newObject)];
+        if([[self.objClass class] respondsToSelector:@selector(newModel)])//for coreData support with DCModel
+            newObject = [[self.objClass class] performSelector:@selector(newModel)];
         else
             newObject = [[self.objClass alloc] init];
         
@@ -195,7 +195,7 @@
     return [self convertToJsonName:propName start:0];
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-+(NSString*)convertToJsonName:(NSString*)propName start:(int)start
++(NSString*)convertToJsonName:(NSString*)propName start:(NSInteger)start
 {
     NSRange range = [propName rangeOfString:@"[a-z.-][^a-z .-]" options:NSRegularExpressionSearch range:NSMakeRange(start, propName.length-start)];
     if(range.location != NSNotFound && range.location < propName.length)
