@@ -36,7 +36,7 @@
     [self.arrayMap setValue:classID forKey:propertyName];
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
--(id)process:(id)object
+-(id)process:(id)object error:(NSError *__autoreleasing *)error
 {
     if(!object)
         return nil;
@@ -47,7 +47,7 @@
         id json = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
         if(error)
             return nil;
-        return [self process:json];
+        return [self process:json error:&error];
     }
     else if([object isKindOfClass:[NSData class]])
     {
@@ -55,13 +55,13 @@
         id json = [NSJSONSerialization JSONObjectWithData:object options:0 error:&error];
         if(error)
             return nil;
-        return [self process:json];
+        return [self process:json error:&error];
     }
     else if([object isKindOfClass:[NSArray class]])
     {
         NSMutableArray* gather = [NSMutableArray arrayWithCapacity:[object count]];
         for(id child in object)
-            [gather addObject:[self process:child]];
+            [gather addObject:[self process:child error:error]];
         return gather;
     }
     if([object isKindOfClass:[NSDictionary class]])
@@ -69,7 +69,7 @@
         NSDictionary* dict = object;
         NSArray* propArray = [self getPropertiesOfClass:self.objClass];
         id newObject = nil;
-        if([[self.objClass class] respondsToSelector:@selector(newObject)])  //[self.objClass resolveClassMethod:@selector(newObject)] //for coreData support with DCModel
+        if([[self.objClass class] respondsToSelector:@selector(newObject)])//for coreData support with DCModel
             newObject = [[self.objClass class] performSelector:@selector(newObject)];
         else
             newObject = [[self.objClass alloc] init];
@@ -78,22 +78,24 @@
         {
             if([propName isEqualToString:@"objID"]) //special edge case for objective-c using the id keyword
             {
-                if([self assignValue:@"id" propName:propName dict:dict obj:newObject])
+                if([self assignValue:@"id" propName:propName dict:dict obj:newObject error:error])
                     continue;
             }
-            if([self assignValue:propName propName:propName dict:dict obj:newObject])
+            if([self assignValue:propName propName:propName dict:dict obj:newObject error:error])
             {
                 continue;
             }
             NSString* objCName = [JSONJoy convertToJsonName:propName];
-            [self assignValue:objCName propName:propName dict:dict obj:newObject];
+            [self assignValue:objCName propName:propName dict:dict obj:newObject error:error];
+            if(*error)
+                return nil;
         }
         return newObject;
     }
     return nil;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
--(BOOL)assignValue:(NSString*)key propName:(NSString*)propName dict:(NSDictionary*)dict obj:(id)obj
+-(BOOL)assignValue:(NSString*)key propName:(NSString*)propName dict:(NSDictionary*)dict obj:(id)obj error:(NSError**)error
 {
     id value = dict[key];
     if(value)
@@ -123,8 +125,8 @@
                 NSMutableArray* gather = [NSMutableArray arrayWithCapacity:array.count];
                 for(NSDictionary* dict in array)
                 {
-                    id joy = [[JSONJoy JSONJoyWithClass:arrayClass] process:dict];
-                    if(joy)
+                    id joy = [[JSONJoy JSONJoyWithClass:arrayClass] process:dict error:error];
+                    if(joy && !error)
                         [gather addObject:joy];
                 }
                 [obj setValue:gather forKey:propName];
@@ -133,7 +135,12 @@
         }
         //this is a type check to ensure that the value is same type as expected.
         if(![value isKindOfClass:self.propertyClasses[propName]] && [NSNull null] != (NSNull*)value)
+        {
+            NSString* errorString = [NSString stringWithFormat:@"%@. Value: %@ is of class type: %@ expected: %@",
+                                     NSLocalizedString(@"Type does not match expected response", nil),propName,NSStringFromClass([value class]),self.propertyClasses[propName]];
+            *error = [JSONJoy errorWithDetail:errorString code:JSONJoyErrorCodeIncorrectType];
             return NO;
+        }
         if([NSNull null] == (NSNull*)value)
             [obj setValue:nil forKey:propName];
         else
@@ -148,16 +155,23 @@
 {
     unsigned int outCount, i;
     objc_property_t *properties = class_copyPropertyList(objectClass, &outCount);
-    NSMutableArray* gather = [NSMutableArray arrayWithCapacity:outCount];
+    NSMutableArray *gather = [NSMutableArray arrayWithCapacity:outCount];
     for(i = 0; i < outCount; i++)
     {
         objc_property_t property = properties[i];
         NSString* propName = [NSString stringWithUTF8String:property_getName(property)];
-        const char * type = property_getAttributes(property);
+        const char *type = property_getAttributes(property);
         
-        NSString * typeString = [NSString stringWithUTF8String:type];
-        NSArray * attributes = [typeString componentsSeparatedByString:@","];
-        NSString * typeAttribute = [attributes objectAtIndex:0];
+        NSString *typeString = [NSString stringWithUTF8String:type];
+        NSArray *attributes = [typeString componentsSeparatedByString:@","];
+        NSString *typeAttribute = [attributes objectAtIndex:0];
+        
+        //may need to support these in the future.
+        //NSString *propertyType = [typeAttribute substringFromIndex:1];
+        //const char *rawPropertyType = [propertyType UTF8String];
+        //if (strcmp(rawPropertyType, @encode(float)) == 0) //it's a float
+        //else if (strcmp(rawPropertyType, @encode(int)) == 0)//it's an int
+        //else if (strcmp(rawPropertyType, @encode(id)) == 0) //is id, so any NSObject
         
         if ([typeAttribute hasPrefix:@"T@"] && [typeAttribute length] > 1)
         {
@@ -213,6 +227,13 @@
     return mapper;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
++(NSError*)errorWithDetail:(NSString*)detail code:(JSONJoyErrorCode)code
+{
+    NSMutableDictionary* details = [NSMutableDictionary dictionary];
+    [details setValue:detail forKey:NSLocalizedDescriptionKey];
+    return [[NSError alloc] initWithDomain:NSLocalizedString(@"JSONJoy", nil) code:code userInfo:details];
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @end
 
@@ -222,10 +243,17 @@
 
 @implementation NSObject (JSONJoy)
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
 +(id)objectWithJoy:(id)jsonObj
 {
-    JSONJoy* mapper = [[JSONJoy alloc] initWithClass:[self class]];
-    return [mapper process:jsonObj];
+    return [self objectWithJoy:jsonObj error:nil];
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////
++(id)objectWithJoy:(id)jsonObj error:(NSError *__autoreleasing *)error
+{
+    JSONJoy* mapper = [[JSONJoy alloc] initWithClass:[self class]];
+    return [mapper process:jsonObj error:error];
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 @end

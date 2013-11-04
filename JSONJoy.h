@@ -11,10 +11,19 @@
 @interface JSONJoy : NSObject
 
 ///-------------------------------
+/// @name Error codes For JSONJoy
+///-------------------------------
+typedef enum {
+    JSONJoyErrorCodeIncorrectType = 1 //this is returned when the expected type does not match in the JSON Object
+} JSONJoyErrorCode;
+
+///-------------------------------
 /// @name Initalizing a JSONJoy Object
 ///-------------------------------
 /**
  Initializes and returns a JSONJoy object with the class that the json will be converted to.
+ @param classObj is the class to map the JSON Object to.
+ @return a new JSONJoy object.
 */
 -(instancetype)initWithClass:(Class)classObj;
 
@@ -29,8 +38,11 @@
 
 /**
  Runs the conversion process and returns a new object of the class provided.
+ @param jsonObj is a json Object or json String to parse.
+ @param error returns a valid object if an error occures.
+ @return a new parse object of the the class provided.
  */
--(id)process:(id)JSONObject;
+-(id)process:(id)JSONObject error:(NSError**)error;
 
 ///-------------------------------
 /// @name Factory Methods
@@ -57,9 +69,19 @@
 ///-------------------------------
 @interface NSObject (JSONJoy)
 
-/** 
-Category on NSObject that creates a JSONJoy object and runs the process method to create a new object from the JSONObject provided.
+/**
+ Category on NSObject that creates a JSONJoy object and runs the process method to create a new object from the JSONObject provided.
+ @param jsonObj is a json Object or json String to parse.
+ @return a new parse object of the class running the parsing.
  */
 +(id)objectWithJoy:(id)jsonObj;
+
+/**
+ Category on NSObject that creates a JSONJoy object and runs the process method to create a new object from the JSONObject provided.
+ @param jsonObj is a json Object or json String to parse.
+ @param error returns a valid object if an error occures.
+ @return a new parse object of the class running the parsing.
+ */
++(id)objectWithJoy:(id)jsonObj error:(NSError**)error;
 
 @end
