@@ -134,7 +134,7 @@
             }
         }
         //this is a type check to ensure that the value is same type as expected.
-        if(![value isKindOfClass:self.propertyClasses[propName]] && [NSNull null] != (NSNull*)value)
+        if(self.propertyClasses[propName] && ![value isKindOfClass:self.propertyClasses[propName]] && [NSNull null] != (NSNull*)value)
         {
             NSString* errorString = [NSString stringWithFormat:@"%@. Value: %@ is of class type: %@ expected: %@",
                                      NSLocalizedString(@"Type does not match expected response", nil),propName,NSStringFromClass([value class]),self.propertyClasses[propName]];
