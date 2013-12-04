@@ -70,7 +70,7 @@
         NSArray* propArray = [self getPropertiesOfClass:self.objClass];
         id newObject = nil;
         if([[self.objClass class] respondsToSelector:@selector(newModel)])//for coreData support with DCModel
-            newObject = [[self.objClass class] performSelector:@selector(newModel)];
+            newObject = newObject = objc_msgSend([self.objClass class], @selector(newModel));//[[self.objClass class] performSelector:@selector(newModel)];
         else
             newObject = [[self.objClass alloc] init];
         
@@ -87,7 +87,7 @@
             }
             NSString* objCName = [JSONJoy convertToJsonName:propName];
             [self assignValue:objCName propName:propName dict:dict obj:newObject error:error];
-            if(*error)
+            if(error && *error)
                 return nil;
         }
         return newObject;
@@ -109,7 +109,7 @@
         }
         if([value isKindOfClass:[NSDictionary class]] && ![[obj valueForKey:propName] isKindOfClass:[NSDictionary class]])
         {
-            id joy = [value objectWithJoy:obj];
+            id joy = [self.propertyClasses[propName] objectWithJoy:value];
             if(joy)
             {
                 [obj setValue:joy forKey:propName];
