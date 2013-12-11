@@ -8,6 +8,7 @@
 
 #import "JSONJoy.h"
 #import <objc/runtime.h>
+#import <objc/message.h>
 
 @interface JSONJoy ()
 
@@ -173,7 +174,7 @@
         //else if (strcmp(rawPropertyType, @encode(int)) == 0)//it's an int
         //else if (strcmp(rawPropertyType, @encode(id)) == 0) //is id, so any NSObject
         
-        if ([typeAttribute hasPrefix:@"T@"] && [typeAttribute length] > 1)
+        if ([typeAttribute hasPrefix:@"T@"] && [typeAttribute length] > 3)
         {
             NSString * typeClassName = [typeAttribute substringWithRange:NSMakeRange(3, [typeAttribute length]-4)];  //turns @"NSDate" into NSDate
             Class typeClass = NSClassFromString(typeClassName);
@@ -232,6 +233,12 @@
     NSMutableDictionary* details = [NSMutableDictionary dictionary];
     [details setValue:detail forKey:NSLocalizedDescriptionKey];
     return [[NSError alloc] initWithDomain:NSLocalizedString(@"JSONJoy", nil) code:code userInfo:details];
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//just to silence the warnings
+-(void)newModel
+{
+    
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
