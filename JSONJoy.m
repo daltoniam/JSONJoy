@@ -212,6 +212,30 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 -(NSDate*)formatDate:(NSString*)dateString
 {
+    if (dateString.length > 20)
+    {
+        dateString = [dateString stringByReplacingOccurrencesOfString:@":"
+                                                           withString:@""
+                                                              options:0
+                                                                range:NSMakeRange(20, dateString.length-20)];
+        NSRange range = [dateString rangeOfString:@"." options:NSBackwardsSearch];
+        if(range.location == NSNotFound)
+        {
+            range = [dateString rangeOfString:@"+" options:NSBackwardsSearch];
+            if(range.location == NSNotFound)
+                range = [dateString rangeOfString:@"-" options:NSBackwardsSearch range:NSMakeRange(20, dateString.length-20)];
+            if(range.location != NSNotFound)
+            {
+                NSString *save = [dateString substringFromIndex:range.location];
+                dateString = [dateString substringToIndex:range.location];
+                dateString = [dateString stringByAppendingFormat:@".000%@",save];
+            }
+            else
+                dateString = [dateString stringByAppendingString:@".000+0000"];
+        }
+    }
+    else
+        dateString = [dateString stringByAppendingString:@".000+0000"];
     static NSDateFormatter *dateFormatter = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
