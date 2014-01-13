@@ -44,6 +44,12 @@ typedef enum {
  */
 -(id)process:(id)JSONObject error:(NSError**)error;
 
+/**
+ retrieves all the property key names.
+ @return an array of all the property keys on the object.
+ */
+-(NSArray*)propertyKeys;
+
 ///-------------------------------
 /// @name Factory Methods
 ///-------------------------------
