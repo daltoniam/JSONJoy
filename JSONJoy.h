@@ -76,6 +76,12 @@ typedef enum {
 @interface NSObject (JSONJoy)
 
 /**
+ Category on NSObject that creates a JSONJoy object. The other category methods call this one as well, so you can provide customizations as needed.
+ @return a new JSONJoy object.
+ */
++(JSONJoy*)jsonMapper;
+
+/**
  Category on NSObject that creates a JSONJoy object and runs the process method to create a new object from the JSONObject provided.
  @param jsonObj is a json Object or json String to parse.
  @return a new parse object of the class running the parsing.

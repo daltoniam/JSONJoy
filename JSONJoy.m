@@ -110,9 +110,15 @@
         }
         if([value isKindOfClass:[NSDictionary class]] && ![[obj valueForKey:propName] isKindOfClass:[NSDictionary class]])
         {
-            id joy = [self.propertyClasses[propName] objectWithJoy:value];
+            NSError *childError = nil;
+            id joy = [self.propertyClasses[propName] objectWithJoy:value error:&childError];
             if(joy)
             {
+                if(childError && error)
+                {
+                    *error = childError;
+                    return NO;
+                }
                 [obj setValue:joy forKey:propName];
                 return YES;
             }
@@ -126,9 +132,15 @@
                 NSMutableArray* gather = [NSMutableArray arrayWithCapacity:array.count];
                 for(NSDictionary* dict in array)
                 {
-                    id joy = [[JSONJoy JSONJoyWithClass:arrayClass] process:dict error:error];
-                    if(joy && !error)
+                    NSError *childError = nil;
+                    id joy = [[JSONJoy JSONJoyWithClass:arrayClass] process:dict error:&childError];
+                    if(joy && !childError)
                         [gather addObject:joy];
+                    if(childError && error)
+                    {
+                        *error = childError;
+                        return NO;
+                    }
                 }
                 [obj setValue:gather forKey:propName];
                 return YES;
@@ -139,7 +151,8 @@
         {
             NSString* errorString = [NSString stringWithFormat:@"%@. Value: %@ is of class type: %@ expected: %@",
                                      NSLocalizedString(@"Type does not match expected response", nil),propName,NSStringFromClass([value class]),self.propertyClasses[propName]];
-            *error = [JSONJoy errorWithDetail:errorString code:JSONJoyErrorCodeIncorrectType];
+            if(error)
+                *error = [JSONJoy errorWithDetail:errorString code:JSONJoyErrorCodeIncorrectType];
             return NO;
         }
         if([NSNull null] == (NSNull*)value)
@@ -279,6 +292,11 @@
 @implementation NSObject (JSONJoy)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
++(JSONJoy*)jsonMapper
+{
+    return [[JSONJoy alloc] initWithClass:[self class]];
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
 +(id)objectWithJoy:(id)jsonObj
 {
     return [self objectWithJoy:jsonObj error:nil];
@@ -286,7 +304,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 +(id)objectWithJoy:(id)jsonObj error:(NSError *__autoreleasing *)error
 {
-    JSONJoy* mapper = [[JSONJoy alloc] initWithClass:[self class]];
+    JSONJoy* mapper = [self jsonMapper];
     return [mapper process:jsonObj error:error];
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
