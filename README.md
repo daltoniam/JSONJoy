@@ -97,6 +97,18 @@ AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager]
     NSLog(@"Error: %@", error);
 }];
 ```
+Need to add some customize parsing? No Problem, just implement this method like the example below:
+
+```objective-c
++(JSONJoy*)jsonMapper
+{
+    JSONJoy* mapper = [[JSONJoy alloc] initWithClass:[self class]];
+    [mapper addArrayClassMap:@"photos" class:[Photo class]];
+    return mapper;
+}
+```
+All category methods call this method as well, so your objects get parsed properly.
+
 # Usage #
 
 JSONJoy works by mapping property names to JSON value names. It also supports standard rails snake case JSON names being convert to standard camel case objective-c property names. For example: 
@@ -110,7 +122,6 @@ supports JSON values in the format of:
 "first_name": "John"
 "firstName": "John"
 ```
-
 # Install #
 
 The recommended approach for installing JSONJoy is via the CocoaPods package manager, as it provides flexible dependency management and dead simple installation.
