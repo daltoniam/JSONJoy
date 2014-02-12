@@ -112,13 +112,13 @@
         {
             NSError *childError = nil;
             id joy = [self.propertyClasses[propName] objectWithJoy:value error:&childError];
+            if(childError && error)
+            {
+                *error = childError;
+                return NO;
+            }
             if(joy)
             {
-                if(childError && error)
-                {
-                    *error = childError;
-                    return NO;
-                }
                 [obj setValue:joy forKey:propName];
                 return YES;
             }
@@ -236,7 +236,7 @@
         {
             range = [dateString rangeOfString:@"+" options:NSBackwardsSearch];
             if(range.location == NSNotFound)
-                range = [dateString rangeOfString:@"-" options:NSBackwardsSearch range:NSMakeRange(20, dateString.length-20)];
+                range = [dateString rangeOfString:@"-" options:NSBackwardsSearch range:NSMakeRange(19, dateString.length-21)];
             if(range.location != NSNotFound)
             {
                 NSString *save = [dateString substringFromIndex:range.location];
