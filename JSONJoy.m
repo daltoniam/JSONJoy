@@ -225,6 +225,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 -(NSDate*)formatDate:(NSString*)dateString
 {
+    if([NSNull null] == (NSNull*)dateString)
+        return nil;
     if (dateString.length > 20)
     {
         dateString = [dateString stringByReplacingOccurrencesOfString:@":"
