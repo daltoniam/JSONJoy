@@ -3,6 +3,8 @@ JSONJoy
 
 JSONJoy is a joyful little library for iOS and Mac OSX that makes converting and mapping JSON to your objects simple. 
 
+You can read more about it here: [http://vluxe.io/json-parsing.html](http://vluxe.io/json-parsing.html)
+
 # Example #
 So here is an JSON blob we want to parse:
 ```javascript
