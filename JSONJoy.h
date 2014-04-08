@@ -68,6 +68,12 @@ typedef enum {
 
 +(NSString*)convertToJsonName:(NSString*)propName;
 
+/**
+ sets if we should try to do a loose property matching that ignores case.
+ @param set if loose should be enabled. Default is NO.
+ */
++(void)setLoose:(BOOL)loose;
+
 @end
 
 ///-------------------------------

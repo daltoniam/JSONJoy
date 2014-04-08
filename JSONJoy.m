@@ -20,6 +20,7 @@
 
 @implementation JSONJoy
 
+static BOOL isLoose;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 -(instancetype)initWithClass:(Class)class
 {
@@ -82,12 +83,22 @@
                 if([self assignValue:@"id" propName:propName dict:dict obj:newObject error:error])
                     continue;
             }
+            if([propName isEqualToString:@"objDescription"]) //special edge case for objective-c using the description method
+            {
+                if([self assignValue:@"description" propName:propName dict:dict obj:newObject error:error])
+                    continue;
+            }
             if([self assignValue:propName propName:propName dict:dict obj:newObject error:error])
             {
                 continue;
             }
             NSString* objCName = [JSONJoy convertToJsonName:propName];
             [self assignValue:objCName propName:propName dict:dict obj:newObject error:error];
+            if(isLoose)
+            {
+                NSString *looseName = [propName stringByReplacingCharactersInRange:NSMakeRange(0,1) withString:[[propName substringToIndex:1] lowercaseString]];
+                [self assignValue:looseName propName:propName dict:dict obj:newObject error:error];
+            }
             if(error && *error)
                 return nil;
         }
@@ -272,6 +283,11 @@
     NSMutableDictionary* details = [NSMutableDictionary dictionary];
     [details setValue:detail forKey:NSLocalizedDescriptionKey];
     return [[NSError alloc] initWithDomain:NSLocalizedString(@"JSONJoy", nil) code:code userInfo:details];
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
++(void)setLoose:(BOOL)loose
+{
+    isLoose = !loose;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 -(NSArray*)propertyKeys
