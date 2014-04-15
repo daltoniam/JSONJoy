@@ -69,10 +69,17 @@ typedef enum {
 +(NSString*)convertToJsonName:(NSString*)propName;
 
 /**
- sets if we should try to do a loose property matching that ignores case.
+ sets if JSONJoy should try to do a loose property matching that ignores case.
  @param set if loose should be enabled. Default is NO.
  */
 +(void)setLoose:(BOOL)loose;
+
+/**
+ sets if JSONJoy should auto box/convert BOOL types 
+ to NSNumber or NSString if the property is set to that.
+ @param set if auto boxing of BOOLs should be enabled. Default is YES.
+ */
++(void)setAutoConvertBOOLs:(BOOL)box;
 
 @end
 

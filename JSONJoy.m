@@ -21,6 +21,7 @@
 @implementation JSONJoy
 
 static BOOL isLoose;
+static BOOL boxDisabled;
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 -(instancetype)initWithClass:(Class)class
 {
@@ -160,6 +161,26 @@ static BOOL isLoose;
         //this is a type check to ensure that the value is same type as expected.
         if(self.propertyClasses[propName] && ![value isKindOfClass:self.propertyClasses[propName]] && [NSNull null] != (NSNull*)value)
         {
+            //special handling of BOOL type. It will auto box/convert a BOOL to a number or string if already set.
+            if([value isKindOfClass:NSClassFromString(@"__NSCFBoolean")] && !boxDisabled)
+            {
+                if([self.propertyClasses[propName] isSubclassOfClass:[NSString class]])
+                {
+                    if([NSNull null] == (NSNull*)value)
+                        [obj setValue:nil forKey:propName];
+                    else
+                        [obj setValue:[NSString stringWithFormat:@"%@",value] forKey:propName];
+                    return YES;
+                }
+                else if([self.propertyClasses[propName] isSubclassOfClass:[NSNumber class]])
+                {
+                    if([NSNull null] == (NSNull*)value)
+                        [obj setValue:nil forKey:propName];
+                    else
+                        [obj setValue:[NSNumber numberWithBool:(BOOL)value] forKey:propName];
+                    return YES;
+                }
+            }
             NSString* errorString = [NSString stringWithFormat:@"%@. Value: %@ is of class type: %@ expected: %@",
                                      NSLocalizedString(@"Type does not match expected response", nil),propName,NSStringFromClass([value class]),self.propertyClasses[propName]];
             if(error)
@@ -288,6 +309,11 @@ static BOOL isLoose;
 +(void)setLoose:(BOOL)loose
 {
     isLoose = !loose;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
++(void)setAutoConvertBOOLs:(BOOL)box
+{
+    boxDisabled = !box;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 -(NSArray*)propertyKeys
