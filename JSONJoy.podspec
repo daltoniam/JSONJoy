@@ -1,11 +1,12 @@
 Pod::Spec.new do |s|
   s.name         = "JSONJoy"
-  s.version      = "0.1.5"
+  s.version      = "0.1.6"
   s.summary      = "Makes JSON a joy to use"
   s.homepage     = "https://github.com/daltoniam/JSONJoy"
   s.license      = 'Apache License, Version 2.0'
   s.author       = { "Dalton Cherry" => "daltoniam@gmail.com" }
-  s.source       = { :git => "https://github.com/daltoniam/JSONJoy.git", :tag => '0.1.5' }
+  s.social_media_url = 'http://twitter.com/daltoniam'
+  s.source       = { :git => "https://github.com/daltoniam/JSONJoy.git", :tag => "#{s.version}" }
   s.ios.deployment_target = '5.0'
   s.osx.deployment_target = '10.8'
   s.source_files = '*.{h,m}'
