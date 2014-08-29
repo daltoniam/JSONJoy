@@ -249,7 +249,7 @@ static BOOL boxDisabled;
         unichar c = [propName characterAtIndex:range.location+1];
         propName = [propName stringByReplacingOccurrencesOfString:[NSString stringWithFormat:@"%c",c]
                                                        withString:[[NSString stringWithFormat:@"_%c",c] lowercaseString]
-                                                          options:0 range:NSMakeRange(start, propName.length-start)];
+                                                          options:0 range:range]; //NSMakeRange(start, propName.length-start)
         return [self convertToJsonName:propName start:range.location+1];
     }
     return propName;
