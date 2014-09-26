@@ -206,6 +206,10 @@ static BOOL boxDisabled;
     {
         objc_property_t property = properties[i];
         NSString* propName = [NSString stringWithUTF8String:property_getName(property)];
+        if([propName isEqualToString:@"debugDescription"] || [propName isEqualToString:@"superclass"]
+           || [propName isEqualToString:@"hash"] || [propName isEqualToString:@"description"]) {
+            continue;
+        }
         const char *type = property_getAttributes(property);
         
         NSString *typeString = [NSString stringWithUTF8String:type];
