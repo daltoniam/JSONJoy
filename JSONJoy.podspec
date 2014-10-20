@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name         = "JSONJoy"
-  s.version      = "0.1.7"
+  s.version      = "0.1.8"
   s.summary      = "Makes JSON a joy to use"
   s.homepage     = "https://github.com/daltoniam/JSONJoy"
   s.license      = 'Apache License, Version 2.0'
