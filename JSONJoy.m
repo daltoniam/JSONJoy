@@ -71,11 +71,7 @@ static BOOL boxDisabled;
     {
         NSDictionary* dict = object;
         NSArray* propArray = [self getPropertiesOfClass:self.objClass];
-        id newObject = nil;
-        if([[self.objClass class] respondsToSelector:@selector(newModel)])//for coreData support with DCModel
-            newObject = objc_msgSend([self.objClass class], @selector(newModel));//[[self.objClass class] performSelector:@selector(newModel)];
-        else
-            newObject = [[self.objClass alloc] init];
+        id newObject = [[self.objClass alloc] init];
         
         for(NSString* propName in propArray)
         {
